@@ -9,24 +9,35 @@ def load_item(filename):
     columns = ("movie id", "movie title", "release date", "video release date",
                "IMDb URL", "unknown", "Action", "Adventure", "Animation",
                "Children's", "Comedy", "Crime", "Documentary", "Drama",
-               "Fantasy", "Film-Noir", "Horror", "Musical", "Mystery", "Romance",
-               "Sci-Fi", "Thriller", "War", "Western")
+               "Fantasy", "Film-Noir", "Horror", "Musical", "Mystery",
+               "Romance", "Sci-Fi", "Thriller", "War", "Western")
     data = pd.read_csv(filename, names=columns, skipinitialspace=True,
-            sep="|", na_values="?", index_col=False, encoding='latin-1')
+                       sep="|", na_values="?", index_col=False,
+                       encoding='latin-1')
     return data
 
 
 def load_user(filename):
-    columns = ("user id","age","gender","occupation","zip code")
+    columns = ("user id", "age", "gender", "occupation", "zip code")
     data = pd.read_csv(filename, names=columns, skipinitialspace=True,
-            sep="|", na_values="?", index_col=False, encoding='latin-1')
+                       sep="|", na_values="?", index_col=False,
+                       encoding='latin-1')
     return data
 
 
 def load_data(filename):
-    columns = ("user id","movie id","rating","timestamp")
+    columns = ("user id", "movie id", "rating", "timestamp")
     data = pd.read_csv(filename, names=columns, skipinitialspace=True,
-            sep="\t", na_values="?", index_col=False, encoding='latin-1')
+                       sep="\t", na_values="?", index_col=False,
+                       encoding='latin-1')
+    return data
+
+
+def load_test(filename):
+    columns = ("test_id", "user id", "movie id")
+    data = pd.read_csv(filename, names=columns, skipinitialspace=True,
+                       sep="\t", na_values="?", index_col=False,
+                       encoding='latin-1')
     return data
 
 
@@ -41,12 +52,20 @@ def make_full_dataset(datafile):
 
 def five_fold(df):
     reader = Reader(rating_scale=(1, 5))
-    data = Dataset.load_from_df(df[['user id', 'movie id', 'rating']], reader)
+    data = Dataset.load_from_df(df[['user id', 'movie id', 'rating']],
+                                reader)
     algo = SVD()
-    out = cross_validate(algo, data, measures=['RMSE', 'MAE'], cv=5, verbose=True)
+    out = cross_validate(
+        algo,
+        data,
+        measures=[
+            'RMSE',
+            'MAE'],
+        cv=5,
+        verbose=True)
     print(out)
+
 
 full = make_full_dataset("data/u_train.data")
 five_fold(full)
-# print(full.head())
-
+print(full.head())

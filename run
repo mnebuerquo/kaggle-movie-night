@@ -1,6 +1,9 @@
 #!/bin/sh
 
+# https://github.com/mnebuerquo/virtuous-python
 # Run a python script, and manage the virtualenv for me so I don't have to
+
+# Originally from this gist:
 # https://gist.github.com/mnebuerquo/4da76a007d18964dc3f7ce43e213b46f
 
 # Run: ./run app.py [--argument --other file --whatever]
@@ -90,10 +93,14 @@ CWD=$(pwd)
 export PYTHONPATH="$CWD:$PYTHONPATH"
 
 # Figure out what we're running and then run it.
-if [ "--lint" == "$1" ]; then
+if [ "--clean" == $1 ]; then
+	# remove virtualenv directories
+	rm -rf "$TESTENV"
+	rm -rf "$VIRTUAL"
+elif [ "--lint" == "$1" ]; then
 	# Lint
 	shift
-	echo "Lint -----------------------" >> "${RUNLOG}"
+	echo "$@"
 	create_env_test
 	. "$TESTENV/bin/activate"
 	flake8 \
@@ -101,21 +108,18 @@ if [ "--lint" == "$1" ]; then
 elif [ "--test" == "$1" ]; then
 	# Test
 	shift
-	echo "Test -----------------------" >> "${RUNLOG}"
 	create_env_test
 	. "$TESTENV/bin/activate"
 	pytest --doctest-modules "$@"
 elif [ "--format" == "$1" ]; then
 	# Reformat code
 	shift
-	echo "Format -----------------------" >> "${RUNLOG}"
 	create_env_test
 	. "$TESTENV/bin/activate"
 	autopep8 --verbose --in-place --recursive --aggressive \
 		--exclude .git,__pycache__,docs/source/conf.py,old,build,dist,${VIRTUAL},${TESTENV} \
 		"$@"
 else
-	echo "Run -----------------------" >> "${RUNLOG}"
 	create_env
 	. "$VIRTUAL/bin/activate"
 	$PYTHON "${@:1}"
