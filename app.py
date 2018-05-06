@@ -3,6 +3,9 @@ from surprise import SVD
 from surprise import Dataset
 from surprise import Reader
 from surprise.model_selection import cross_validate
+import csv
+import time
+import sys
 
 
 def load_item(filename):
@@ -63,9 +66,33 @@ def five_fold(df):
             'MAE'],
         cv=5,
         verbose=True)
-    print(out)
+    return algo.fit(data.build_full_trainset())
 
 
-full = make_full_dataset("data/u_train.data")
-five_fold(full)
-print(full.head())
+def predict(test, algo):
+    output = [('index', 'rating')]
+    for index, row in test.iterrows():
+        prediction = algo.predict(row['user id'], row['movie id'])
+        output.append((row['test_id'], prediction.est))
+    return output
+
+
+def save(output):
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    filename = 'kmn-sa-{}.csv'.format(timestr)
+    with open(filename, 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',',
+                                quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerows(output)
+
+
+def main(args):
+    full = make_full_dataset("data/u_train.data")
+    algo = five_fold(full)
+    test = load_test("data/u_test.data")
+    output = predict(test, algo)
+    save(output)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
